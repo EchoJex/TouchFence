@@ -9,14 +9,15 @@ jobs:
       - name: Get the code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Unzip the project
+        run: unzip -q TouchFence.zip
+
+      - name: Set up JDK 17 with Gradle caching
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Unzip the project
-        run: unzip -q TouchFence.zip
+          cache: gradle
 
       - name: Build debug APK
         run: |
