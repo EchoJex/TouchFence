@@ -2,6 +2,11 @@ name: Build TouchFence APK
 
 on: [push, workflow_dispatch]
 
+# Needed so the job can publish the built APK as a GitHub Release
+# (the in-app updater downloads it from there).
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,10 +28,28 @@ jobs:
         run: |
           cd TouchFence
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          # Unique, increasing versionCode per build so the updater can tell
+          # builds apart. Offset by 1000 to stay above the pinned 13.
+          ./gradlew assembleDebug --no-daemon \
+            -PversionCodeOverride=$((1000 + GITHUB_RUN_NUMBER))
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         with:
           name: TouchFence-apk
           path: TouchFence/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish rolling 'latest' release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CODE=$((1000 + GITHUB_RUN_NUMBER))
+          APK=TouchFence/app/build/outputs/apk/debug/app-debug.apk
+          cp "$APK" "TouchFence-$CODE.apk"
+          # One rolling release tagged 'latest': replace it each build so
+          # /releases/latest always serves the newest APK.
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest "TouchFence-$CODE.apk" \
+            --title "TouchFence build $CODE" \
+            --notes "versionCode=$CODE"$'\n'"Automated build from $GITHUB_SHA." \
+            --latest
