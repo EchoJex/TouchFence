@@ -49,16 +49,18 @@ jobs:
           APK=TouchFence/app/build/outputs/apk/debug/app-debug.apk
           cp "$APK" "TouchFence-$CODE.apk"
           NOTES="versionCode=$CODE"$'\n'"branch=$BRANCH"$'\n'"$GITHUB_SHA"
-          # Default channel: rolling 'latest' = the newest build across all
-          # branches. This is what the in-app updater targets by default.
-          gh release delete latest --cleanup-tag --yes || true
-          gh release create latest "TouchFence-$CODE.apk" \
-            --title "latest — $BRANCH build $CODE" \
-            --notes "$NOTES" \
-            --latest
-          # Per-branch channel (tag "ch-<slug>") for the in-app channel picker.
+          # Per-branch channel (tag "ch-<slug>") for the in-app channel picker — every branch.
           gh release delete "ch-$SLUG" --cleanup-tag --yes || true
           gh release create "ch-$SLUG" "TouchFence-$CODE.apk" \
             --title "$BRANCH — build $CODE" \
             --notes "$NOTES" \
             --latest=false
+          # Rolling 'latest' (the updater's default target) ONLY from main, so a
+          # feature branch can never become everyone's default update.
+          if [ "$BRANCH" = "main" ]; then
+            gh release delete latest --cleanup-tag --yes || true
+            gh release create latest "TouchFence-$CODE.apk" \
+              --title "latest — main build $CODE" \
+              --notes "$NOTES" \
+              --latest
+          fi
