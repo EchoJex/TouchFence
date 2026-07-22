@@ -39,17 +39,26 @@ jobs:
           name: TouchFence-apk
           path: TouchFence/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Publish rolling 'latest' release
+      - name: Publish releases (rolling 'latest' + per-branch channel)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           CODE=$((1000 + GITHUB_RUN_NUMBER))
+          BRANCH="$GITHUB_REF_NAME"
+          SLUG=$(printf '%s' "$BRANCH" | tr '/' '-' | tr -cd 'A-Za-z0-9-')
           APK=TouchFence/app/build/outputs/apk/debug/app-debug.apk
           cp "$APK" "TouchFence-$CODE.apk"
-          # One rolling release tagged 'latest': replace it each build so
-          # /releases/latest always serves the newest APK.
+          NOTES="versionCode=$CODE"$'\n'"branch=$BRANCH"$'\n'"$GITHUB_SHA"
+          # Default channel: rolling 'latest' = the newest build across all
+          # branches. This is what the in-app updater targets by default.
           gh release delete latest --cleanup-tag --yes || true
           gh release create latest "TouchFence-$CODE.apk" \
-            --title "TouchFence build $CODE" \
-            --notes "versionCode=$CODE"$'\n'"Automated build from $GITHUB_SHA." \
+            --title "latest — $BRANCH build $CODE" \
+            --notes "$NOTES" \
             --latest
+          # Per-branch channel (tag "ch-<slug>") for the in-app channel picker.
+          gh release delete "ch-$SLUG" --cleanup-tag --yes || true
+          gh release create "ch-$SLUG" "TouchFence-$CODE.apk" \
+            --title "$BRANCH — build $CODE" \
+            --notes "$NOTES" \
+            --latest=false
