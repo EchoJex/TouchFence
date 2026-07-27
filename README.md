@@ -1,8 +1,8 @@
-# TouchFence
+# Ghost-TouchBuster
 
-A personal touch-blocker for a cracked screen. Draw a freeform shape in the
-working (bottom) half of the screen, the app converts it into at most 128
-rectangles, and a D-pad nudges the mask up over the damaged area. A foreground
+A personal touch-blocker for a cracked screen. A guided auto test begins on first launch, checking for inside touches and dead touch zones. Alternatively, you can Draw a freeform shape in the
+working half of the screen, the app converts it into at most 128
+rectangles, and a D-pad nudges the mask over the damaged area. A foreground
 service then keeps one tiny overlay window per rectangle alive, eating every
 touch inside the mask while everything outside behaves normally.
 
@@ -21,7 +21,7 @@ Command line alternative: `./gradlew installDebug` with the phone plugged in.
 ## Using it
 
 1. Open TouchFence, allow notifications, tap "Grant overlay permission"
-   (Settings opens â€” enable it for TouchFence, go back).
+   (Settings opens to enable it for Ghost-touchBuster, go back).
 2. Tap "Draw or edit mask". Scribble or circle the shape of the dead zone
    anywhere below the dashed line. Thick scribbles fill; closed loops fill
    their interior. Undo/Clear as needed, then "Done".
@@ -29,7 +29,7 @@ Command line alternative: `./gradlew installDebug` with the phone plugged in.
    mask up onto the damaged area (Step toggles 20 px / 120 px). "Save mask".
 4. Tap "Start blocking". The zones tint faint red and eat all touches.
 
-The persistent notification has **Pause 60s** (lifts the mask briefly â€” your
+The persistent notification has **Pause 10s** (lifts the mask briefly as your
 escape hatch if a zone covers something you need) and **Stop**.
 
 ## Tweakables
